@@ -27,7 +27,7 @@ gitee不能上传大量图片，所以数值对应图片.txt的内容需要删�
 #### 非专业
 0、运行前，请先下载好相应的python包，使用pip安装。
 
-你可能需要以下的包[PIL](https://pillow.readthedocs.io/en/stable/installation.html)、[PyTorch](https://pytorch.org/get-started/locally/)，安装方法请自行研究。
+你可能需要以下的包[PIL](https://pillow.readthedocs.io/en/stable/installation.html)、[PyTorch](https://pytorch.org/get-started/locally/)、OpenCV，安装方法请自行研究。
 
 1、直接截一张1920*1080的图片放到文件夹“未标注的图片"中，图片名要包含Screenshot，否则你得修改一下代码。
 
