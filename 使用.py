@@ -3,7 +3,7 @@ from torch.utils.data import DataLoader
 from torch.autograd import Variable
 import torch.nn.functional as func
 
-from 神经网络.卷积重叠网络类 import 卷积重叠网络
+from 神经网络.卷积叠加网络类 import 卷积重叠网络
 from 工具.截图工具 import 属性和数值图片截取
 from 训练_属性 import 数据类
 from 训练_属性 import 调整尺寸并归一化 as 属性_调整尺寸并归一化

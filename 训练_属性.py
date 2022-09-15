@@ -12,7 +12,7 @@ from torchvision import transforms
 from torch.autograd import Variable
 import torch.nn.functional as func
 
-from 神经网络.卷积重叠网络类 import 卷积重叠网络
+from 神经网络.卷积叠加网络类 import 卷积重叠网络
 from 工具.截图工具 import 读取图片
 
 

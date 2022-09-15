@@ -9,7 +9,7 @@ from torch.nn import CTCLoss
 from torch.utils.data import DataLoader, Dataset
 import torch.nn.functional as func
 
-from 神经网络.卷积重叠网络类 import 卷积重叠网络
+from 神经网络.卷积叠加网络类 import 卷积重叠网络
 from 训练_属性 import 初始化权重
 from 工具.截图工具 import 读取图片
 
