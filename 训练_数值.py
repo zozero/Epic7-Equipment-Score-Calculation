@@ -9,7 +9,7 @@ from torch.nn import CTCLoss
 from torch.utils.data import DataLoader, Dataset
 import torch.nn.functional as func
 
-from 神经网络.卷积叠加网络类 import 卷积重叠网络
+from 神经网络.卷积叠加网络类 import 卷积叠加网络
 from 训练_属性 import 初始化权重
 from 工具.截图工具 import 读取图片
 
@@ -139,7 +139,7 @@ def 评估(模型, 设备):
 
 if __name__ == "__main__":
     设备 = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
-    模型 = 卷积重叠网络(1, 13, 256)
+    模型 = 卷积叠加网络(1, 13, 256)
     print(模型)
     模型.to(设备)
     # 评估(已训练的模型, 设备)

@@ -12,7 +12,7 @@ from torchvision import transforms
 from torch.autograd import Variable
 import torch.nn.functional as func
 
-from 神经网络.卷积叠加网络类 import 卷积重叠网络
+from 神经网络.卷积叠加网络类 import 卷积叠加网络
 from 工具.截图工具 import 读取图片
 
 
@@ -113,13 +113,13 @@ def 初始化权重(模型):
 
 def 主要():
     设备 = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
-    模型 = 卷积重叠网络(1, 21, 256)
+    模型 = 卷积叠加网络(1, 21, 256)
     print(模型)
     模型.to(设备)
-    评估(模型, 设备)
-    exit()
+    # 评估(模型, 设备)
+    # exit()
 
-    是否继续训练 = True
+    是否继续训练 = False
     if os.path.exists('已训练的模型/最新模型wk3.ckpt') and 是否继续训练:
         模型.load_state_dict(torch.load('已训练的模型/最新模型wk3.ckpt'))
     else:

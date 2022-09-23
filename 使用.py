@@ -3,7 +3,7 @@ from torch.utils.data import DataLoader
 from torch.autograd import Variable
 import torch.nn.functional as func
 
-from 神经网络.卷积叠加网络类 import 卷积重叠网络
+from 神经网络.卷积叠加网络类 import 卷积叠加网络
 from 工具.截图工具 import 属性和数值图片截取
 from 训练_属性 import 数据类
 from 训练_属性 import 调整尺寸并归一化 as 属性_调整尺寸并归一化
@@ -56,12 +56,12 @@ if __name__ == '__main__':
     属性和数值图片截取()
 
     设备 = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
-    属性模型 = 卷积重叠网络(1, 21, 256)
+    属性模型 = 卷积叠加网络(1, 21, 256)
     print(属性模型)
     属性模型.to(设备)
     属性列表 = 使用属性模型(属性模型, 设备, 模型路径='已训练的模型/当前属性最佳模型.ckpt')
 
-    数值模型 = 卷积重叠网络(1, 13, 256)
+    数值模型 = 卷积叠加网络(1, 13, 256)
     print(数值模型)
     数值模型.to(设备)
     数值列表 = 使用数值模型(数值模型, 设备, 模型路径='已训练的模型/当前数值最佳模型.ckpt')

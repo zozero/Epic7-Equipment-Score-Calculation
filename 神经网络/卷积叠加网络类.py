@@ -4,24 +4,24 @@ from torch import nn
 class 双向长短期记忆神经网络(nn.Module):
     def __init__(self, 输入长度, 藏层长度, 输出长度):
         super(双向长短期记忆神经网络, self).__init__()
-        self.重叠神经网络 = nn.LSTM(输入长度, 藏层长度, bidirectional=True)
+        self.叠加神经网络 = nn.LSTM(输入长度, 藏层长度, bidirectional=True)
         self.嵌入层 = nn.Linear(藏层长度 * 2, 输出长度)
 
     def forward(self, 输入):
-        重叠, _ = self.重叠神经网络(输入)
-        T, b, h = 重叠.size()
-        # print('重叠:', 重叠.size())
-        t_重叠 = 重叠.view(T * b, h)
+        叠加, _ = self.叠加神经网络(输入)
+        T, b, h = 叠加.size()
+        # print('叠加:', 叠加.size())
+        t_叠加 = 叠加.view(T * b, h)
 
-        输出 = self.嵌入层(t_重叠)
+        输出 = self.嵌入层(t_叠加)
 
         输出 = 输出.view(T, b, -1)
         return 输出
 
 
-class 卷积重叠网络(nn.Module):
+class 卷积叠加网络(nn.Module):
     def __init__(self, 通道数, 分类数, 藏层长度):
-        super(卷积重叠网络, self).__init__()
+        super(卷积叠加网络, self).__init__()
 
         self.卷积1 = nn.Conv2d(通道数, 32, 3, 1, 1)
         self.整流线性函数1 = nn.ReLU(True)
@@ -43,8 +43,8 @@ class 卷积重叠网络(nn.Module):
         self.批标准化4 = nn.BatchNorm2d(128)
         self.整流线性函数4 = nn.ReLU(True)
 
-        self.重叠神经网络 = 双向长短期记忆神经网络(128, 藏层长度, 分类数)
-        # self.重叠神经网络 = nn.Sequential(
+        self.叠加神经网络 = 双向长短期记忆神经网络(128, 藏层长度, 分类数)
+        # self.叠加神经网络 = nn.Sequential(
         #     双向长短期记忆神经网络(128, 藏层长度, 藏层长度),
         #     双向长短期记忆神经网络(藏层长度, 藏层长度, 分类数)
         # )
@@ -63,6 +63,6 @@ class 卷积重叠网络(nn.Module):
         卷积 = 卷积.squeeze(2)
         卷积 = 卷积.permute(2, 0, 1)
         # print('5：', 卷积.size())
-        输出 = self.重叠神经网络(卷积)
+        输出 = self.叠加神经网络(卷积)
         # print('6：', 输出.size())
         return 输出
