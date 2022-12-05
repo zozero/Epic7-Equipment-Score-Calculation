@@ -1,4 +1,4 @@
-import os
+﻿import os
 import numpy as np
 import torch
 from torch import optim
@@ -29,7 +29,7 @@ def 评估(模型, 设备):
         # 标签概率 = F.log_softmax(输出的分类, dim=-1).cpu().detach().numpy()
         # 标签概率 = 输出的分类.cpu().detach().numpy()
         标签概率 = F.softmax(输出的分类, dim=-1)
-        print(torch.topk(标签概率[0, :, 1], 100))
+        print(torch.topk(标签概率[0, :, 1], 300))
         标签概率 = 标签概率.cpu().detach().numpy()
         输出的偏移量 = 输出的偏移量.cpu().detach().numpy()
 
@@ -39,7 +39,7 @@ def 评估(模型, 设备):
         # 原图拷贝1=原图.copy()
         # 测试用数据集.画出方框(原图拷贝1, 微调好的满图小方框.astype(np.int32))
 
-        前景概率大于阈值的索引 = np.where(标签概率[0, :, 1] > 0.1)[0]
+        前景概率大于阈值的索引 = np.where(标签概率[0, :, 1] > 0.46)[0]
         # 前景概率大于阈值的小方框 = 微调好的满图小方框[前景概率大于阈值的索引, :]
         前景概率大于阈值的小方框 = 满图的小方框[前景概率大于阈值的索引, :]
         前景概率大于阈值的小方框 = 前景概率大于阈值的小方框.astype(np.int32)
@@ -82,14 +82,14 @@ if __name__ == '__main__':
     设备 = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
     模型 = 连接文本提取网络()
     模型.to(设备)
-    评估(模型, 设备)
-    exit()
+    # 评估(模型, 设备)
+    # exit()
     # 是否继续训练 = True
     是否继续训练 = False
     if os.path.exists(模型存储路径) and 是否继续训练:
         模型.load_state_dict(torch.load(模型存储路径))
     else:
-        模型.apply(初始化权重)
+        # 模型.apply(初始化权重)
         pass
     分类的损失函数 = 分类损失值(设备)
     偏移量的损失函数 = 偏移量损失值(设备)
@@ -99,7 +99,7 @@ if __name__ == '__main__':
     # 调度器 = optim.lr_scheduler.StepLR(优化器, step_size=10, gamma=0.1)
 
     总次数 = 0
-    for 轮回 in range(80):
+    for 轮回 in range(1):
         模型.train()
         for 索引, (_, 图片, 标签, 偏移量) in enumerate(训练用数据加载器):
             图片 = 图片.to(设备)

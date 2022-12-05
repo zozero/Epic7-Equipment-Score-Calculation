@@ -12,7 +12,7 @@ from torchvision import transforms
 from torch.autograd import Variable
 import torch.nn.functional as func
 
-from 神经网络.卷积叠加网络类 import 卷积叠加网络
+from 神经网络.卷积反复网络类 import 卷积反复网络
 from 工具.截图工具 import 读取图片
 
 
@@ -23,7 +23,7 @@ from 工具.截图工具 import 读取图片
 # np.random.seed(随机种子)
 
 
-class 调整尺寸并归一化:
+class 调整尺寸并标准化:
     def __init__(self):
         self.转张量 = transforms.ToTensor()
 
@@ -113,7 +113,7 @@ def 初始化权重(模型):
 
 def 主要():
     设备 = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
-    模型 = 卷积叠加网络(1, 21, 256)
+    模型 = 卷积反复网络(1, 21, 256)
     print(模型)
     模型.to(设备)
     # 评估(模型, 设备)
@@ -131,7 +131,7 @@ def 主要():
     优化器 = optim.Adam(模型.parameters(), lr=0.0001, betas=(0.5, 0.999))
 
     训练用数据集 = 数据类()
-    训练用数据加载器 = DataLoader(训练用数据集, batch_size=1, collate_fn=调整尺寸并归一化(), shuffle=True)
+    训练用数据加载器 = DataLoader(训练用数据集, batch_size=1, collate_fn=调整尺寸并标准化(), shuffle=True)
     最低损失值 = float("inf")
     总次数 = 0
     for 轮回 in range(160):
@@ -165,7 +165,7 @@ def 主要():
 def 评估(模型, 设备):
     测试用数据集 = 数据类('测试_属性')
     # 测试用数据集 = 数据类()
-    测试用数据加载器 = DataLoader(测试用数据集, batch_size=1, collate_fn=调整尺寸并归一化())
+    测试用数据加载器 = DataLoader(测试用数据集, batch_size=1, collate_fn=调整尺寸并标准化())
     模型.load_state_dict(torch.load('已训练的模型/当前最佳模型.ckpt'))
     模型.eval()
     for 图片名列表, 图片列表 in 测试用数据加载器:
