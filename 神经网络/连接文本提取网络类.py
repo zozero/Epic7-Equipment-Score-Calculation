@@ -15,8 +15,6 @@ class 数据处理(Dataset):
         self.图片目录 = 图片目录
         self.标签目录 = 标签目录
         self.图片名列表 = os.listdir(图片目录)
-        # 调试时用于显示各函数执行的效果
-        self.图片 = None
 
     def __len__(self):
         return len(self.图片名列表)
@@ -24,8 +22,8 @@ class 数据处理(Dataset):
     def __getitem__(self, 索引):
         图片名 = self.图片名列表[索引]
         图片 = self.读取图片(self.图片目录 + 图片名)
-        图片[np.where(图片[:, :, :] == 0)] = 1
-        高, 宽, 通道数 = 图片.shape
+        图片[np.where(图片[:, :] == 0)] = 1
+        高, 宽 = 图片.shape
 
         标签文件路径 = os.path.join(self.标签目录, 图片名.split('.')[0] + '.txt')
         标注的大方框列表 = self.读取文件(标签文件路径)
@@ -45,16 +43,29 @@ class 数据处理(Dataset):
         偏移量 = np.hstack([标签矩阵.reshape(标签矩阵.shape[0], 1), 偏移量])
         标签矩阵 = np.expand_dims(标签矩阵, axis=0)
 
-        减去均值后的图片 = torch.from_numpy(减去均值后的图片.transpose([2, 0, 1])).float()
+        减去均值后的图片 = torch.from_numpy(减去均值后的图片.transpose([0, 1])).float()
         标签矩阵 = torch.from_numpy(标签矩阵).float()
         偏移量 = torch.from_numpy(偏移量).float()
 
         return 图片, 减去均值后的图片, 标签矩阵, 偏移量
 
+    def 保存图片(self, 图片, 图片路径):
+        图片 = cv2.cvtColor(图片, cv2.COLOR_GRAY2RGB)
+        图片 = Image.fromarray(图片)
+        图片.save(图片路径)
+
     def 读取图片(self, 图片路径):
         图片 = Image.open(图片路径)
-        图片 = cv2.cvtColor(np.asarray(图片), cv2.COLOR_RGB2BGR)
-        self.图片 = 图片
+        # 把png图片转jpg图片然后转为灰度图，用于减少数据计算量
+        if 'png' in 图片路径:
+            图片路径2 = str.replace(图片路径, 'png', 'jpg')
+            图片 = 图片.convert('L')
+            图片.save(图片路径2, format='jpeg')
+            图片.close()
+            os.remove(图片路径)
+            图片 = Image.open(图片路径2)
+
+        图片 = np.asarray(图片).copy()
         return 图片
 
     def 显示图片(self, 图片):
@@ -148,7 +159,8 @@ class 数据处理(Dataset):
         标注好的小方框高度的矩阵 = 标注好的小方框矩阵[:, 3] - 标注好的小方框矩阵[:, 1] + 1.0
         满图的小方框高度的矩阵 = 满图的小方框矩阵[:, 3] - 满图的小方框矩阵[:, 1] + 1.0
 
-        两者纵坐标距离与其中的满图的小方框的高之间比率的矩阵 = (标注好的小方框中心的纵坐标 - 满图的小方框中心的纵坐标) / 满图的小方框高度的矩阵
+        两者纵坐标距离与其中的满图的小方框的高之间比率的矩阵 = (
+                                                                       标注好的小方框中心的纵坐标 - 满图的小方框中心的纵坐标) / 满图的小方框高度的矩阵
         # 由于当前高度只有一个值35，所以比率始终是1，加入对数后结果为零......
         两者高之间比率对数的矩阵 = np.log(标注好的小方框高度的矩阵 / 满图的小方框高度的矩阵)
         return np.vstack((两者纵坐标距离与其中的满图的小方框的高之间比率的矩阵, 两者高之间比率对数的矩阵)).transpose()
@@ -232,7 +244,7 @@ class 数据处理(Dataset):
 class 简化的可视化几何群组网络(nn.Module):
     def __init__(self):
         super(简化的可视化几何群组网络, self).__init__()
-        self.卷积1_1 = nn.Conv2d(3, 64, 3, 1, 1)
+        self.卷积1_1 = nn.Conv2d(1, 64, 3, 1, 1)
         self.整流线性函数1_1 = nn.ReLU(True)
         self.最大池化1_1 = nn.MaxPool2d(3, 3)
         self.卷积1_2 = nn.Conv2d(64, 64, 3, 1, 1)
@@ -281,18 +293,19 @@ class 连接文本提取网络(nn.Module):
         self.卷积1 = nn.Conv2d(128, 128, 3, 1, 1)
         self.整流线性函数1 = nn.ReLU(True)
 
-        self.门控反复单元 = nn.GRU(128, 32, bidirectional=True, batch_first=True)
-        self.卷积2 = nn.Conv2d(64, 64, 1, 1)
+        self.门控反复单元 = nn.GRU(128, 64, bidirectional=True, batch_first=True)
+        self.卷积2 = nn.Conv2d(128, 128, 1, 1)
         self.整流线性函数2 = nn.ReLU(True)
 
         # 1是选择的高的数量，乘2是因为把它分为前景和背景，
-        self.分类 = nn.Conv2d(64, 1 * 2, 1, 1)
-        self.偏移量 = nn.Conv2d(64, 1 * 2, 1, 1)
+        self.分类 = nn.Conv2d(128, 1 * 2, 1, 1)
+        self.偏移量 = nn.Conv2d(128, 1 * 2, 1, 1)
         # self.分类 = nn.Conv2d(64, 1, 1, 1)
         # self.偏移量 = nn.Conv2d(64, 1, 1, 1)
 
     def forward(self, 输入):
-        # 1*3*1080*1920
+        # 1*1*1080*1920
+        输入 = 输入.view(1, 输入.size(0), 输入.size(1), 输入.size(2))
         输出 = self.简化的可视化几何群组(输入)
 
         输出 = self.卷积1(输出)
@@ -305,20 +318,18 @@ class 连接文本提取网络(nn.Module):
         输出 = 输出.view(尺寸[0] * 尺寸[1], 尺寸[2], 尺寸[3])
         输出, _ = self.门控反复单元(输出)
 
-        输出 = 输出.view(尺寸备份[0], 尺寸备份[2], 尺寸备份[3], 64)
+        输出 = 输出.view(尺寸备份[0], 尺寸备份[2], 尺寸备份[3], 128)
         输出 = 输出.permute(0, 3, 1, 2).contiguous()
         输出 = self.卷积2(输出)
         输出 = self.整流线性函数2(输出)
 
         分类 = self.分类(输出)
         分类 = 分类.permute(0, 2, 3, 1).contiguous()
-        分类 = 分类.view(分类.size(0), 分类.size(1) * 分类.size(2) * 1, 2)
-        # 分类 = 分类.view(分类.size(0), 分类.size(1) * 分类.size(2) * 1, 1)
+        分类 = 分类.view(分类.size(0), 分类.size(1) * 分类.size(2), 2)
 
         偏移量 = self.偏移量(输出)
         偏移量 = 偏移量.permute(0, 2, 3, 1).contiguous()
-        偏移量 = 偏移量.view(偏移量.size(0), 偏移量.size(1) * 偏移量.size(2) * 1, 2)
-        # 偏移量 = 偏移量.view(偏移量.size(0), 偏移量.size(1) * 偏移量.size(2) * 1, 1)
+        偏移量 = 偏移量.view(偏移量.size(0), 偏移量.size(1) * 偏移量.size(2), 2)
         # print(分类.shape)
 
         return 分类, 偏移量
@@ -356,19 +367,25 @@ class 分类损失值(nn.Module):
     #     return 损失值.to(self.设备)
 
     def forward(self, 输入, 标签):
-        总数=300
+        """
+        前景是指要找到的文字，背景则与之相反
+        :param 输入:
+        :param 标签:
+        :return:
+        """
+        总数 = 300
         标签 = 标签[0][0]
         标签为一的索引 = (标签 == 1).nonzero()[:, 0]
-        前景的标签 = 标签[标签为一的索引].long()
+        标签的前景 = 标签[标签为一的索引].long()
         预测的前景 = 输入[0][标签为一的索引]
-        前景的损失值 = self.损失函数(预测的前景.view(-1, 2), 前景的标签.view(-1))
+        前景的损失值 = self.损失函数(预测的前景.view(-1, 2), 标签的前景.view(-1))
         前景的损失值之和 = 前景的损失值.sum()
         前景的损失值之数量 = len(预测的前景)
 
         标签为零的索引 = (标签 == 0).nonzero()[:, 0]
         背景的标签 = 标签[标签为零的索引].long()
-        预测的背景 = 输入[0][标签为零的索引]
-        背景的损失值 = self.损失函数(预测的背景.view(-1, 2), 背景的标签.view(-1))
+        背景的预测 = 输入[0][标签为零的索引]
+        背景的损失值 = self.损失函数(背景的预测.view(-1, 2), 背景的标签.view(-1))
         背景的损失值, _ = torch.topk(背景的损失值, 总数 - 前景的损失值之数量)
         背景的损失值之和 = 背景的损失值.sum()
 
